@@ -1,0 +1,47 @@
+version: "3.8"
+
+services:
+  langfuse-server:
+    image: ghcr.io/langfuse/langfuse:latest
+    depends_on:
+      - postgres
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
+      - NEXTAUTH_SECRET
+      - SALT
+      - NEXTAUTH_URL
+      - TELEMETRY_ENABLED
+      - NEXT_PUBLIC_SIGN_UP_DISABLED
+      - LANGFUSE_ENABLE_EXPERIMENTAL_FEATURES
+      - HOSTNAME
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik_public"
+      - "traefik.http.routers.langfuse.rule=Host(`${DOMAIN}`)"
+      - "traefik.http.routers.langfuse.entrypoints=websecure"
+      - "traefik.http.services.langfuse.loadbalancer.server.port=3000"
+      - "traefik.http.routers.langfuse.tls.certresolver=leresolver"
+    networks:
+      - default
+      - traefik_public
+
+  postgres:
+    image: postgres:15
+    environment:
+      - POSTGRES_HOST
+      - POSTGRES_PORT
+      - POSTGRES_USER
+      - POSTGRES_PASSWORD
+      - POSTGRES_DB
+    
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+
+volumes:
+  pg_data:
+
+networks:
+  traefik_public:
+    name: traefik_public
+    external: true

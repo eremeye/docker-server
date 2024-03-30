@@ -1,0 +1,13 @@
+version: "3"
+services:
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    command: tunnel tunnel --no-autoupdate run
+    environment:
+      - TUNNEL_TOKEN
+    restart: always
+    networks:
+      - public
+networks:
+  public:
+    external: true

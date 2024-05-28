@@ -1,0 +1,15 @@
+hcloud_token = "<YOUR-HCLOUD-TOKEN>"
+ssh_key_name = "<YOUR-KEY-NAME>"
+ssh_pub_key_path  = "/path/to/your/public/key.pub"
+ssh_priv_key_path = "/path/to/your/private/key"
+#
+# You can override the default values here if needed
+#
+# project_name = "default"
+# hcloud_image_name = "ubuntu-24.04"
+# hcloud_location_name = "nbg1"
+# hcloud_server_type_name = "cx21"
+# hcloud_server_architecture = "x86"  # or "arm"
+# network_ip_range = "10.1.0.0/16"
+# subnet_ip_range = "10.1.1.0/24"
+# var.server_network_ip = "10.0.1.2"

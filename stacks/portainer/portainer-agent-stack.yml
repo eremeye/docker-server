@@ -36,6 +36,7 @@ networks:
     driver: overlay
     attachable: true
   public_network:
+    name: public_network
     driver: overlay
     attachable: true
 

@@ -83,7 +83,7 @@ resource "hcloud_firewall" "firewall1" {
   }
 }
 
-resource "hcloud_server" "node1" {
+resource "hcloud_server" "master" {
   name        = "${var.project_name}-1"
   server_type = data.hcloud_server_type.server_type.name
   image       = data.hcloud_image.image.name
@@ -129,17 +129,17 @@ resource "hcloud_server" "node1" {
 }
 
 resource "hcloud_server_network" "server_network" {
-  server_id  = hcloud_server.node1.id
+  server_id  = hcloud_server.master.id
   network_id = hcloud_network.network1.id
   ip         = var.server_network_ip
 }
 
-output "node1_public_ip" {
-  value = hcloud_server.node1.ipv4_address
-  description = "The public IP address of the node1 server."
+output "master_public_ip" {
+  value = hcloud_server.master.ipv4_address
+  description = "The public IP address of the master server."
 }
 
 output "portainer_address" {
-  value = "https://${hcloud_server.node1.ipv4_address}:9443"
-  description = "The URL to access the Portainer service running on node1."
+  value = "https://${hcloud_server.master.ipv4_address}:9443"
+  description = "The URL to access the Portainer service running on master."
 }

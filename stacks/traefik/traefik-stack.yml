@@ -26,7 +26,7 @@ services:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
       - secrets:/secrets
     networks:
-      - public
+      - public_network
     labels:
       - "traefik.http.routers.http-catchall.rule=hostregexp(`{host:.+}`)"
       - "traefik.http.routers.http-catchall.entrypoints=web"
@@ -37,5 +37,5 @@ volumes:
   secrets:
 
 networks:
-  public:
+  public_network:
     external: true

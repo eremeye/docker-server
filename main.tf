@@ -113,7 +113,11 @@ resource "hcloud_server" "node1" {
   EOT
 
   provisioner "remote-exec" {
-      inline = ["docker swarm init --advertise-addr ${var.server_network_ip}"]
+    inline = [
+      "docker swarm init --advertise-addr ${var.server_network_ip}",
+      "curl -L https://downloads.portainer.io/ce2-19/portainer-agent-stack.yml -o portainer-agent-stack.yml",
+      "docker stack deploy -c portainer-agent-stack.yml portainer"
+    ]
 
     connection {
       type        = "ssh"
@@ -128,4 +132,14 @@ resource "hcloud_server_network" "server_network" {
   server_id  = hcloud_server.node1.id
   network_id = hcloud_network.network1.id
   ip         = var.server_network_ip
+}
+
+output "node1_public_ip" {
+  value = hcloud_server.node1.ipv4_address
+  description = "The public IP address of the node1 server."
+}
+
+output "portainer_address" {
+  value = "https://${hcloud_server.node1.ipv4_address}:9443"
+  description = "The URL to access the Portainer service running on node1."
 }

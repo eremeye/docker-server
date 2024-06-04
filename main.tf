@@ -112,6 +112,13 @@ resource "hcloud_server" "master" {
         - reboot
   EOT
 
+  connection {
+    type        = "ssh"
+    user        = "root"
+    private_key = file(var.ssh_priv_key_path)
+    host        = self.ipv4_address
+  }
+
   provisioner "file" {
     source      = "stacks/portainer/portainer-agent-stack.yml"
     destination = "/tmp/portainer-agent-stack.yml"
@@ -122,13 +129,6 @@ resource "hcloud_server" "master" {
       "docker swarm init --advertise-addr ${var.server_network_ip}",
       "docker stack deploy -c /tmp/portainer-agent-stack.yml portainer"
     ]
-
-    connection {
-      type        = "ssh"
-      user        = "root"
-      private_key = file(var.ssh_priv_key_path)
-      host        = self.ipv4_address
-    }
   }
 }
 

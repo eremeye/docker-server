@@ -112,11 +112,15 @@ resource "hcloud_server" "master" {
         - reboot
   EOT
 
+  provisioner "file" {
+    source      = "stacks/portainer/portainer-agent-stack.yml"
+    destination = "/tmp/portainer-agent-stack.yml"
+  }
+
   provisioner "remote-exec" {
     inline = [
       "docker swarm init --advertise-addr ${var.server_network_ip}",
-      "curl -L https://downloads.portainer.io/ce2-19/portainer-agent-stack.yml -o portainer-agent-stack.yml",
-      "docker stack deploy -c portainer-agent-stack.yml portainer"
+      "docker stack deploy -c /tmp/portainer-agent-stack.yml portainer"
     ]
 
     connection {

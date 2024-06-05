@@ -1,0 +1,67 @@
+{
+    "version": "2",
+    "templates": [
+        {
+            "type": 2,
+            "title": "Swarm monitoring",
+            "description": "Monitor your cluster performances with Prometheus & Grafana",
+            "note": "Requires Docker version 19.03.0+. <b>Make sure to add the <code>monitoring == true</code> one of your Swarm manager node before deploying this stack.</b>",
+            "categories": [
+                "Monitoring"
+            ],
+            "platform": "linux",
+            "logo": "https://portainer-io-assets.sfo2.digitaloceanspaces.com/logos/portainer.png",
+            "repository": {
+                "url": "https://github.com/portainer/templates",
+                "stackfile": "swarm/monitoring/docker-compose.yml"
+            },
+            "env": [
+                {
+                    "name": "GRAFANA_USER",
+                    "label": "Grafana admin user",
+                    "default": "admin"
+                },
+                {
+                    "name": "GRAFANA_PASSWORD",
+                    "label": "Grafana admin password"
+                }
+            ]
+        },    
+      {
+        "type": 2,
+        "title": "Danswer",
+        "description": "Open-source AI Assistant connected to your company's docs.",
+        "categories": ["Application"],
+        "platform": "linux",
+        "logo": "https://github.com/danswer-owners/danswer/raw/1fabd9372d66cd54238847197c33f091a724803b/DanswerWithName.png",
+        "repository": {
+          "url": "https://github.com/eremeye/docker-server",
+          "stackfile": "stacks/danswer/danswer-stack.yml"
+        },
+        "env": [
+          {
+            "name": "HOSTNAME",
+            "label": "Hostname e.g. danswer.companyname.com"
+          },
+          {
+            "name": "WEB_DOMAIN",
+            "label": "Hostname with scheme e.g https://danswer.companyname.com"
+          },
+          { 
+            "name": "AUTH_TYPE",
+            "label": "User Authentication, supported flows are: # disabled # basic (standard username / password) # google_oauth (login with google/gmail account)",
+            "default": "basic"
+          },
+          {
+            "name": "POSTGRES_USER",
+            "label": "Postgres username",
+            "default": "postgres"
+          },
+          {
+            "name": "POSTGRES_PASSWORD",
+            "label": "Postgres password"
+          }
+        ]
+      }
+    ]
+  }

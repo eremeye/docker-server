@@ -124,10 +124,16 @@ resource "hcloud_server" "master" {
     destination = "/tmp/portainer-agent-stack.yml"
   }
 
+  provisioner "file" {
+    source      = "stacks/traefik/traefik-stack.yml"
+    destination = "/tmp/traefik-stack.yml"
+  }
+
   provisioner "remote-exec" {
     inline = [
       "docker swarm init --advertise-addr ${var.server_network_ip}",
-      "docker stack deploy -c /tmp/portainer-agent-stack.yml portainer"
+      "docker stack deploy -c /tmp/portainer-agent-stack.yml portainer",
+      "${var.reverse_proxy == "traefik" ? "docker stack deploy -c /tmp/traefik-stack.yml traefik" : ""}"
     ]
   }
 }

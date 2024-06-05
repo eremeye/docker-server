@@ -1,0 +1,130 @@
+version: '3.8'
+services:
+  api_server:
+    image: danswer/danswer-backend:latest
+    command: >
+      /bin/sh -c "alembic upgrade head &&
+      echo \"Starting Danswer Api Server\" &&
+      uvicorn danswer.main:app --host 0.0.0.0 --port 8080"
+    depends_on:
+      - relational_db
+      - index
+      - inference_model_server
+    environment:
+      - AUTH_TYPE
+      - POSTGRES_HOST=relational_db
+      - POSTGRES_USER
+      - POSTGRES_PASSWORD
+      - VESPA_HOST=index
+      - MODEL_SERVER_HOST=${MODEL_SERVER_HOST:-inference_model_server}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=public_network"
+      - "traefik.http.routers.danswer_api.rule=Host(`${HOSTNAME}`)"
+      - "traefik.http.routers.danswer_api.rule=PathPrefix(`/api`) || Path(`/openapi.json`)"
+      - "traefik.http.routers.danswer_api.entrypoints=websecure"
+      - "traefik.http.services.danswer_api.loadbalancer.server.port=8080"
+      - "traefik.http.middlewares.api-stripprefix.stripprefix.prefixes=/api"
+      - "traefik.http.routers.api.middlewares=api-stripprefix"
+    networks:
+      - public_network
+      - default
+
+  background:
+    image: danswer/danswer-backend:latest
+    command: /usr/bin/supervisord
+    depends_on:
+      - relational_db
+      - index
+      - inference_model_server
+      - indexing_model_server
+    environment:
+      - AUTH_TYPE
+      - POSTGRES_HOST=relational_db
+      - POSTGRES_USER
+      - POSTGRES_PASSWORD
+      - VESPA_HOST=index
+      - MODEL_SERVER_HOST=${MODEL_SERVER_HOST:-inference_model_server}
+      - INDEXING_MODEL_SERVER_HOST=${INDEXING_MODEL_SERVER_HOST:-indexing_model_server}
+
+
+  web_server:
+    image: danswer/danswer-web-server:latest
+    depends_on:
+      - api_server
+    environment:
+      - INTERNAL_URL=http://api_server:8080
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=public_network"
+      - "traefik.http.routers.danswer_web.rule=Host(`${HOSTNAME}`)"
+      - "traefik.http.routers.danswer_web.rule=PathPrefix(`/`)"
+      - "traefik.http.routers.danswer_web.entrypoints=websecure"
+      - "traefik.http.services.danswer_web.loadbalancer.server.port=3000"
+
+    networks:
+      - public_network
+      - default
+
+
+  inference_model_server:
+    image: danswer/danswer-model-server:latest
+    command: >
+      /bin/sh -c "if [ \"${DISABLE_MODEL_SERVER:-false}\" = \"True\" ]; then
+        echo 'Skipping service...';
+        exit 0;
+      else
+        exec uvicorn model_server.main:app --host 0.0.0.0 --port 9000;
+      fi"
+    environment:
+      - MIN_THREADS_ML_MODELS=${MIN_THREADS_ML_MODELS:-}
+      # Set to debug to get more fine-grained logs
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+    volumes:
+      # Not necessary, this is just to reduce download time during startup
+      - model_cache_huggingface:/root/.cache/huggingface/
+
+
+  indexing_model_server:
+    image: danswer/danswer-model-server:latest
+    command: >
+      /bin/sh -c "if [ \"${DISABLE_MODEL_SERVER:-false}\" = \"True\" ]; then
+        echo 'Skipping service...';
+        exit 0;
+      else
+        exec uvicorn model_server.main:app --host 0.0.0.0 --port 9000;
+      fi"
+    environment:
+      - MIN_THREADS_ML_MODELS=${MIN_THREADS_ML_MODELS:-}
+      - INDEXING_ONLY=True
+      # Set to debug to get more fine-grained logs
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+    volumes:
+      # Not necessary, this is just to reduce download time during startup
+      - model_cache_huggingface:/root/.cache/huggingface/
+
+  relational_db:
+    image: postgres:15.2-alpine
+    # POSTGRES_USER and POSTGRES_PASSWORD should be set in .env file
+    volumes:
+      - db_volume:/var/lib/postgresql/data
+
+
+  # This container name cannot have an underscore in it due to Vespa expectations of the URL
+  index:
+    image: vespaengine/vespa:8.277.17
+    ports:
+      - "19071:19071"
+      - "8081:8081"
+    volumes:
+      - vespa_volume:/opt/vespa/var
+      
+
+volumes:
+  db_volume:
+  vespa_volume:
+  model_cache_huggingface:
+
+networks:
+  public_network:
+    external: true

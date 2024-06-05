@@ -108,6 +108,9 @@ services:
     # POSTGRES_USER and POSTGRES_PASSWORD should be set in .env file
     volumes:
       - db_volume:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER
+      - POSTGRES_PASSWORD
 
 
   # This container name cannot have an underscore in it due to Vespa expectations of the URL
